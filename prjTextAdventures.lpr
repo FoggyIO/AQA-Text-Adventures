@@ -200,45 +200,6 @@ procedure ShowHelp();
       GetIndexOfItem := Count;
   end;
 
-  procedure Examine(Items: TItemArray; Characters: TCharacterArray; ItemToExamine: string;
-                    CurrentLocation: integer);
-  var
-    Count: integer;
-    IndexOfItem: integer;
-  begin
-    if ItemToExamine = 'inventory' then
-      DisplayInventory(Items)
-    else
-      begin
-        IndexOfItem := GetIndexOfItem(ItemToExamine, -1, Items);
-        if IndexOfItem <> -1 then
-          begin
-            if (Items[IndexOfItem].Location =
-               Inventory) or (Items[IndexOfItem].Location = CurrentLocation) then
-              begin
-                writeln(Items[IndexOfItem].Description);
-                if pos('door', Items[IndexOfItem].Name) <> 0 then
-                  DisplayDoorStatus(Items[IndexOfItem].Status);
-                if pos('container', Items[IndexOfItem].Status) <> 0 then
-                  DisplayContentsOfContainerItem(Items, Items[IndexOfItem].ID);
-                Exit
-              end;
-          end;
-        Count := 0;
-        while Count < length(Characters) do
-          begin
-            if (Characters[Count].Name = ItemToExamine) and (Characters[Count].CurrentLocation =
-               CurrentLocation) then
-              begin
-                writeln(Characters[Count].Description);
-                exit;
-              end;
-            inc(Count);
-          end;
-        writeln('You cannot find ' + ItemToExamine + ' to look at.');
-      end
-  end;
-
   function GetPositionOfCommand(CommandList: string; Command: string): integer;
   var
     Position: integer;
@@ -855,6 +816,54 @@ procedure ShowHelp();
       say('You can''t open that.');
   end;
 
+procedure DisplayLocation(Location : Integer; Items : TItemArray; Places : TPlaceArray); //Called from 'examine room' command
+begin
+  writeln;
+  writeln;
+  writeln(Places[Location - 1].Description); //Display Room Description
+  DisplayGettableItemsInLocation(Items, Location); //Display Room Items
+end;
+
+procedure Examine(Items: TItemArray; Characters: TCharacterArray; ItemToExamine: string;
+                  CurrentLocation: integer; Places : TPlaceArray);
+var
+  Count: integer;
+  IndexOfItem: integer;
+begin
+  if ItemToExamine = 'inventory' then
+    DisplayInventory(Items)
+  else if ItemToExamine = 'room' then
+  DisplayLocation(CurrentLocation, Items, Places) //Calls Procedure to show room details & items
+  else
+    begin
+      IndexOfItem := GetIndexOfItem(ItemToExamine, -1, Items);
+      if IndexOfItem <> -1 then
+        begin
+          if (Items[IndexOfItem].Location =
+             Inventory) or (Items[IndexOfItem].Location = CurrentLocation) then
+            begin
+              writeln(Items[IndexOfItem].Description);
+              if pos('door', Items[IndexOfItem].Name) <> 0 then
+                DisplayDoorStatus(Items[IndexOfItem].Status);
+              if pos('container', Items[IndexOfItem].Status) <> 0 then
+                DisplayContentsOfContainerItem(Items, Items[IndexOfItem].ID);
+              Exit
+            end;
+        end;
+      Count := 0;
+      while Count < length(Characters) do
+        begin
+          if (Characters[Count].Name = ItemToExamine) and (Characters[Count].CurrentLocation =
+             CurrentLocation) then
+            begin
+              writeln(Characters[Count].Description);
+              exit;
+            end;
+          inc(Count);
+        end;
+      writeln('You cannot find ' + ItemToExamine + ' to look at.');
+    end
+end;
   procedure PlayGame(Characters: TCharacterArray; Items: TItemArray; Places: TPlaceArray);
   var
     StopGame: boolean;
@@ -886,7 +895,7 @@ procedure ShowHelp();
         else if Command = 'read' then
           ReadItem(Items, Instruction, Characters[0].CurrentLocation)
         else if Command = 'examine' then
-          Examine(Items, Characters, Instruction, Characters[0].CurrentLocation)
+          Examine(Items, Characters, Instruction, Characters[0].CurrentLocation, Places)
         else if Command = 'open' then
           begin
             ResultOfOpenClose := OpenClose(true, Items, Places, Instruction, Characters[0].CurrentLocation);
