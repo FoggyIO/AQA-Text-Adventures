@@ -871,6 +871,7 @@ end;
     Command: string;
     Moved: boolean;
     ResultOfOpenClose: integer;
+    Response: string;
   begin
     StopGame := false;
     Moved := true;
@@ -914,8 +915,14 @@ end;
           PlayDiceGame(Characters, Items, Instruction)
         else if Command = 'quit' then
           begin
-            Say('You decide to give up, try again another time');
-            StopGame := true;
+            writeln('Are you sure you want to quit? Y/N'); //quit prompt
+            readln(response);
+            if (lowercase(response) = 'y') or (lowercase(response) = 'yes') then begin //user confirms action
+              Say('You decide to give up, try again another time');
+              StopGame := true;
+            end
+            else //user does not confirm action
+              writeln('You decide to continue with your adventure');
           end
         else if command = 'help' then
           begin
