@@ -50,6 +50,27 @@ program prjTextAdventures;
     GetInstruction := lowercase(Instruction)
   end;
 
+procedure ShowHelp();
+  //Output the list of valid commands and their args.
+
+  //Displayed if user calls the help command - Can be used so the user
+  //is familar with what commands to use.
+  begin
+    writeln('-------- List Of Commands -------');
+    writeln('go <north | south | east | west | up | down>');
+    writeln('get <item>');
+    writeln('use <item>');
+    writeln('examine <item>');
+    writeln('say <message>');
+    writeln('read <item>');
+    writeln('move <object>');
+    writeln('open <door>');
+    writeln('close <door>');
+    writeln('playdice <character>');
+    writeln('quit');
+    writeln('--------------------------------');
+  end;
+
   function ExtractCommand(var Instruction: string): string;
   var
     Command: string;
@@ -887,9 +908,13 @@ program prjTextAdventures;
             Say('You decide to give up, try again another time');
             StopGame := true;
           end
+        else if command = 'help' then
+          begin
+            ShowHelp(); //Calls Help Procedure
+          end
         else
           begin
-            writeln('Sorry, you don''t know how to ', Command, '.')
+            writeln('Sorry, you don''t know how to ', Command, '.');
           end;
       end;
     readln;
@@ -1003,4 +1028,3 @@ program prjTextAdventures;
     randomize;
     Main;
   end.
-
