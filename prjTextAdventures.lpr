@@ -50,27 +50,6 @@ program prjTextAdventures;
     GetInstruction := lowercase(Instruction)
   end;
 
-procedure ShowHelp();
-  //Output the list of valid commands and their args.
-
-  //Displayed if user calls the help command - Can be used so the user
-  //is familar with what commands to use.
-  begin
-    writeln('-------- List Of Commands -------');
-    writeln('go <north | south | east | west | up | down>');
-    writeln('get <item>');
-    writeln('use <item>');
-    writeln('examine <item>');
-    writeln('say <message>');
-    writeln('read <item>');
-    writeln('move <object>');
-    writeln('open <door>');
-    writeln('close <door>');
-    writeln('playdice <character>');
-    writeln('quit');
-    writeln('--------------------------------');
-  end;
-
   function ExtractCommand(var Instruction: string): string;
   var
     Command: string;
@@ -198,6 +177,45 @@ procedure ShowHelp();
       GetIndexOfItem := -1
     else
       GetIndexOfItem := Count;
+  end;
+
+  procedure Examine(Items: TItemArray; Characters: TCharacterArray; ItemToExamine: string;
+                    CurrentLocation: integer);
+  var
+    Count: integer;
+    IndexOfItem: integer;
+  begin
+    if ItemToExamine = 'inventory' then
+      DisplayInventory(Items)
+    else
+      begin
+        IndexOfItem := GetIndexOfItem(ItemToExamine, -1, Items);
+        if IndexOfItem <> -1 then
+          begin
+            if (Items[IndexOfItem].Location =
+               Inventory) or (Items[IndexOfItem].Location = CurrentLocation) then
+              begin
+                writeln(Items[IndexOfItem].Description);
+                if pos('door', Items[IndexOfItem].Name) <> 0 then
+                  DisplayDoorStatus(Items[IndexOfItem].Status);
+                if pos('container', Items[IndexOfItem].Status) <> 0 then
+                  DisplayContentsOfContainerItem(Items, Items[IndexOfItem].ID);
+                Exit
+              end;
+          end;
+        Count := 0;
+        while Count < length(Characters) do
+          begin
+            if (Characters[Count].Name = ItemToExamine) and (Characters[Count].CurrentLocation =
+               CurrentLocation) then
+              begin
+                writeln(Characters[Count].Description);
+                exit;
+              end;
+            inc(Count);
+          end;
+        writeln('You cannot find ' + ItemToExamine + ' to look at.');
+      end
   end;
 
   function GetPositionOfCommand(CommandList: string; Command: string): integer;
@@ -816,54 +834,6 @@ procedure ShowHelp();
       say('You can''t open that.');
   end;
 
-procedure DisplayLocation(Location : Integer; Items : TItemArray; Places : TPlaceArray); //Called from 'examine room' command
-begin
-  writeln;
-  writeln;
-  writeln(Places[Location - 1].Description); //Display Room Description
-  DisplayGettableItemsInLocation(Items, Location); //Display Room Items
-end;
-
-procedure Examine(Items: TItemArray; Characters: TCharacterArray; ItemToExamine: string;
-                  CurrentLocation: integer; Places : TPlaceArray);
-var
-  Count: integer;
-  IndexOfItem: integer;
-begin
-  if ItemToExamine = 'inventory' then
-    DisplayInventory(Items)
-  else if ItemToExamine = 'room' then
-  DisplayLocation(CurrentLocation, Items, Places) //Calls Procedure to show room details & items
-  else
-    begin
-      IndexOfItem := GetIndexOfItem(ItemToExamine, -1, Items);
-      if IndexOfItem <> -1 then
-        begin
-          if (Items[IndexOfItem].Location =
-             Inventory) or (Items[IndexOfItem].Location = CurrentLocation) then
-            begin
-              writeln(Items[IndexOfItem].Description);
-              if pos('door', Items[IndexOfItem].Name) <> 0 then
-                DisplayDoorStatus(Items[IndexOfItem].Status);
-              if pos('container', Items[IndexOfItem].Status) <> 0 then
-                DisplayContentsOfContainerItem(Items, Items[IndexOfItem].ID);
-              Exit
-            end;
-        end;
-      Count := 0;
-      while Count < length(Characters) do
-        begin
-          if (Characters[Count].Name = ItemToExamine) and (Characters[Count].CurrentLocation =
-             CurrentLocation) then
-            begin
-              writeln(Characters[Count].Description);
-              exit;
-            end;
-          inc(Count);
-        end;
-      writeln('You cannot find ' + ItemToExamine + ' to look at.');
-    end
-end;
   procedure PlayGame(Characters: TCharacterArray; Items: TItemArray; Places: TPlaceArray);
   var
     StopGame: boolean;
@@ -871,7 +841,6 @@ end;
     Command: string;
     Moved: boolean;
     ResultOfOpenClose: integer;
-    Response: string;
   begin
     StopGame := false;
     Moved := true;
@@ -896,7 +865,7 @@ end;
         else if Command = 'read' then
           ReadItem(Items, Instruction, Characters[0].CurrentLocation)
         else if Command = 'examine' then
-          Examine(Items, Characters, Instruction, Characters[0].CurrentLocation, Places)
+          Examine(Items, Characters, Instruction, Characters[0].CurrentLocation)
         else if Command = 'open' then
           begin
             ResultOfOpenClose := OpenClose(true, Items, Places, Instruction, Characters[0].CurrentLocation);
@@ -915,22 +884,12 @@ end;
           PlayDiceGame(Characters, Items, Instruction)
         else if Command = 'quit' then
           begin
-            writeln('Are you sure you want to quit? Y/N'); //quit prompt
-            readln(response);
-            if (lowercase(response) = 'y') or (lowercase(response) = 'yes') then begin //user confirms action
-              Say('You decide to give up, try again another time');
-              StopGame := true;
-            end
-            else //user does not confirm action
-              writeln('You decide to continue with your adventure');
-          end
-        else if command = 'help' then
-          begin
-            ShowHelp(); //Calls Help Procedure
+            Say('You decide to give up, try again another time');
+            StopGame := true;
           end
         else
           begin
-            writeln('Sorry, you don''t know how to ', Command, '.');
+            writeln('Sorry, you don''t know how to ', Command, '.')
           end;
       end;
     readln;
@@ -1044,3 +1003,4 @@ end;
     randomize;
     Main;
   end.
+
