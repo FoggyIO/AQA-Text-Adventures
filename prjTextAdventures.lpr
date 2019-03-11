@@ -13,8 +13,8 @@
 program prjTextAdventures;
   uses
     //SysUtils;         // For Delphi
-    SysUtils, Crt;  // For Free Pascal
-
+    SysUtils, Crt, StrUtils;  // For Free Pascal
+    //StrUtils Used for splitting input string into array
   const
     Inventory: Integer = 1001;
     MinimumIDForItem: Integer = 2001;
@@ -26,6 +26,7 @@ program prjTextAdventures;
       ID, North, East, South, West, Up, Down: integer
     end;
 
+    TStringDynArray = array of string;
     TCharacter = record
       Name, Description: string;
       ID, CurrentLocation: integer
@@ -251,6 +252,15 @@ procedure ShowHelp();
   begin
     writeln;
     writeln(Speech);
+    writeln;
+  end;
+
+  procedure Say(Speech: tStringDynArray); Overload;
+  var line : string;
+  begin
+    writeln;
+    for line in Speech do
+      writeln(line);
     writeln;
   end;
 
@@ -1023,6 +1033,8 @@ end;
   procedure Main;
   var
     Filename: string;
+    WelcomeMessage : string;
+    MultilineString : TStringDynArray;
     Items: TItemArray;
     Characters: TCharacterArray;
     Places: TPlaceArray;
@@ -1031,8 +1043,14 @@ end;
     readln(Filename);
     Filename := Filename + '.gme';
     writeln;
-    if LoadGame(Filename, Characters, Items, Places) then
+    if LoadGame(Filename, Characters, Items, Places) then begin
+      SetLength(MultilineString, 3);
+      MultilineString[0] := '       WELCOME';
+      MultilineString[1] := '          TO';
+      MultilineString[2] := '  AQATEXTADVENTURES';
+      say(MultilineString);
       PlayGame(Characters, Items, Places)
+    end
     else
       begin
         writeln('Unable to load game.');
