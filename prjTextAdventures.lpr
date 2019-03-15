@@ -168,15 +168,48 @@ procedure ShowHelp();
       writeln('nothing.')
   end;
 
+  function BubbleSort(Items: tStringDynArray): tStringDynArray;
+  var
+    Item : TItem;
+    FirstItem, SecondItem, i : integer;
+    temp : string;
+begin
+    for FirstItem := 0 to length(Items)-1 do
+       for SecondItem := 1 to length(Items)-1 do
+       begin
+           if Items[FirstItem] > Items[SecondItem] then {swap}
+           begin
+                temp := Items[FirstItem];
+                Items[FirstItem] := Items[SecondItem];
+                Items[SecondItem] := temp;
+           end;
+       end;
+     bubbleSort := Items;
+    end;
+
   procedure DisplayInventory(Items: TItemArray);
   var
     Thing: TItem;
+    ItemName : String;
+    ItemsToSort : Array of String;
+    ItemsSorted : Array of String;
+    i : Integer;
   begin
     writeln;
     writeln('You are currently carrying the following items:');
+    i := 0;
+    setLength(ItemsToSort, length(Items));
     for Thing in Items  do
-      if Thing.Location = Inventory then
-        writeln(Thing.Name);
+      if Thing.Location = Inventory then begin
+        ItemsToSort[i] := (Thing.Name);
+        i := i + 1;
+      end;
+      SetLength(ItemsToSort, i);
+      ItemsSorted := BubbleSort(ItemsToSort);
+
+
+    for ItemName in ItemsSorted do
+      writeln(ItemName);
     writeln;
   end;
 
